@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>Suivi des Drones</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Batterie</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody id="droneTable">
+        </tbody>
+    </table>
+
+    <script>
+        var socket = new SockJS('/ws');
+        var stompClient = Stomp.over(socket);
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connecté: ' + frame);
+            stompClient.subscribe('/topic/drones', function (message) {
+                var drone = JSON.parse(message.body);
+                updateDroneTable(drone);
+            });
+        });
+
+        function updateDroneTable(drone) {
+            var table = document.getElementById("droneTable");
+            var row = document.getElementById(drone.id);
+
+            if (!row) {
+                row = document.createElement("tr");
+                row.id = drone.id;
+                row.innerHTML = `
+                    <td>${drone.name}</td>
+                    <td>${drone.latitude.toFixed(5)}</td>
+                    <td>${drone.longitude.toFixed(5)}</td>
+                    <td>${drone.batteryLevel}%</td>
+                    <td>${drone.status}</td>
+                `;
+                table.appendChild(row);
+            } else {
+                row.cells[1].innerText = drone.latitude.toFixed(5);
+                row.cells[2].innerText = drone.longitude.toFixed(5);
+                row.cells[3].innerText = drone.batteryLevel + "%";
+                row.cells[4].innerText = drone.status;
+            }
+        }
+    </script>
+</body>
+</html>

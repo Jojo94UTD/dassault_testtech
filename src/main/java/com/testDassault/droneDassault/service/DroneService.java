@@ -40,6 +40,10 @@ public class DroneService {
         return droneRepository.save(drone);
     }
 
+    public void saveAllDrones(List<Drone> drones) {
+        droneRepository.saveAll(drones);
+    }
+
     // Supprimer un drone
     public void deleteDrone(String id) {
         droneRepository.deleteById(id);

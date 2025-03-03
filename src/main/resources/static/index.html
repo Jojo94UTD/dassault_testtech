@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Drones</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Liste des Drones</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Batterie</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody id="droneTable"></tbody>
+    </table>
+
+    <script>
+        fetch('http://localhost:8080/drones')
+            .then(response => response.json())
+            .then(data => {
+                let tableBody = document.getElementById("droneTable");
+                data.forEach(drone => {
+                    let row = `<tr>
+                        <td>${drone.name}</td>
+                        <td>${drone.latitude}</td>
+                        <td>${drone.longitude}</td>
+                        <td>${drone.batteryLevel}%</td>
+                        <td>${drone.status}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            })
+            .catch(error => console.error("Erreur lors du chargement des drones:", error));
+    </script>
+</body>
+</html>
