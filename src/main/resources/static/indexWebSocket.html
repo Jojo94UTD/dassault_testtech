@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +8,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
+
 <body>
     <h1>Suivi des Drones</h1>
     <table border="1">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Nom</th>
                 <th>Latitude</th>
                 <th>Longitude</th>
@@ -24,39 +27,71 @@
     </table>
 
     <script>
-        var socket = new SockJS('/ws');
-        var stompClient = Stomp.over(socket);
+        let socket = new SockJS('http://localhost:8080/ws');
+        let stompClient = Stomp.over(socket);
 
         stompClient.connect({}, function (frame) {
-            console.log('Connecté: ' + frame);
+            console.log("📡 WebSocket connecté");
+
+            // S'abonner aux mises à jour des drones
             stompClient.subscribe('/topic/drones', function (message) {
-                var drone = JSON.parse(message.body);
-                updateDroneTable(drone);
+                console.log("📩 Message reçu depuis WebSocket :", message.body);
+                let drones = JSON.parse(message.body);
+
+                if (!Array.isArray(drones)) {
+                    drones = [drones]; // Si ce n'est pas un tableau, le convertir en tableau
+                }
+                console.log("✅ Drones traités :", drones); // Vérifie si tous les drones sont reçus
+
+                updateDroneTable(drones);
             });
+
+            // ✅ Attendre la connexion avant d'envoyer la requête
+            setTimeout(() => {
+                console.log("📨 Demande de la liste des drones...");
+                stompClient.send("/app/getDrones", {}, {});
+            }, 500); // Petit délai pour être sûr que la connexion est prête
         });
 
-        function updateDroneTable(drone) {
-            var table = document.getElementById("droneTable");
-            var row = document.getElementById(drone.id);
+        function updateDroneTable(drones) {
+    console.log("🔄 Mise à jour des drones :", drones);
 
-            if (!row) {
-                row = document.createElement("tr");
-                row.id = drone.id;
-                row.innerHTML = `
-                    <td>${drone.name}</td>
-                    <td>${drone.latitude.toFixed(5)}</td>
-                    <td>${drone.longitude.toFixed(5)}</td>
-                    <td>${drone.batteryLevel}%</td>
-                    <td>${drone.status}</td>
-                `;
-                table.appendChild(row);
-            } else {
-                row.cells[1].innerText = drone.latitude.toFixed(5);
-                row.cells[2].innerText = drone.longitude.toFixed(5);
-                row.cells[3].innerText = drone.batteryLevel + "%";
-                row.cells[4].innerText = drone.status;
-            }
+    let tableBody = document.getElementById("droneTable");
+
+    drones.forEach(drone => {
+        let existingRow = document.getElementById(`drone-${drone.id}`);
+
+        if (existingRow) {
+            // Met à jour les valeurs du drone existant
+            existingRow.innerHTML = `
+                <td>${drone.id}</td>
+                <td>${drone.name}</td>
+                <td>${drone.latitude.toFixed(5)}</td>
+                <td>${drone.longitude.toFixed(5)}</td>
+                <td>${drone.batteryLevel}%</td>
+                <td>${drone.status}</td>
+            `;
+        } else {
+            // Ajouter une nouvelle ligne pour ce drone
+            let row = document.createElement("tr");
+            row.id = `drone-${drone.id}`;
+            row.innerHTML = `
+                <td>${drone.id}</td>
+                <td>${drone.name}</td>
+                <td>${drone.latitude.toFixed(5)}</td>
+                <td>${drone.longitude.toFixed(5)}</td>
+                <td>${drone.batteryLevel}%</td>
+                <td>${drone.status}</td>
+            `;
+            tableBody.appendChild(row);
         }
+    });
+}
+
+
+
+
     </script>
 </body>
+
 </html>

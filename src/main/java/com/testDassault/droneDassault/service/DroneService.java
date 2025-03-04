@@ -3,13 +3,14 @@ package com.testDassault.droneDassault.service;
 import com.testDassault.droneDassault.model.Drone;
 import com.testDassault.droneDassault.repository.DroneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner; // Import correct
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DroneService {
+public class DroneService implements CommandLineRunner { // Implémente CommandLineRunner
 
     @Autowired
     private DroneRepository droneRepository;
@@ -21,7 +22,9 @@ public class DroneService {
 
     // Récupérer tous les drones
     public List<Drone> getAllDrones() {
-        return droneRepository.findAll();
+        List<Drone> drones = droneRepository.findAll();
+        System.out.println("📌 Drones récupérés depuis MongoDB: " + drones);
+        return drones;
     }
 
     // Récupérer un drone par son ID
@@ -47,5 +50,11 @@ public class DroneService {
     // Supprimer un drone
     public void deleteDrone(String id) {
         droneRepository.deleteById(id);
+    }
+
+    @Override // Cette annotation est maintenant valide
+    public void run(String... args) throws Exception { // Implémente la méthode run
+        List<Drone> drones = droneRepository.findAll();
+        System.out.println("📡 Drones récupérés depuis la base : " + drones);
     }
 }
